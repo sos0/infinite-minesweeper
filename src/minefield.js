@@ -87,9 +87,11 @@ export class MineField extends TileMap {
 
         // Count the number of adjacent cells that are flagged.
         let flagged = 0
+        let remainingUnexplored = 0
         for (let i = -1; i <= 1; i++) {
           for (let j = -1; j <= 1; j++) {
             if (this.data[x + i + ',' + (y + j)].flagged) flagged++
+            else if (!this.data[x + i + ',' + (y + j)].explored) remainingUnexplored++
           }
         }
 
@@ -99,6 +101,19 @@ export class MineField extends TileMap {
           for (let i = -1; i <= 1; i++) {
             for (let j = -1; j <= 1; j++) {
               this.explore(x + i, y + j, audio)
+            }
+          }
+        }
+
+
+        // If the number of remaining cells is equal to the number of mines + number of flagged, then autoflag the adjacent cells.
+        // 1. Identify number of adjacent cells that are unexplored.
+        // 2. Identify number of remaining cells left to flag.
+        // 3. If the two numbers are equal, autoflag all remaining cells.
+        if ((flagged + remainingUnexplored) === this.data[x + ',' + y].mines) {
+          for (let i = -1; i <= 1; i++) {
+            for (let j = -1; j <= 1; j++) {
+              if ((!this.data[x + i + ',' + (y + j)].explored) && (!this.data[x + i + ',' + (y + j)].flagged)) this.flag(x + i, y + j)
             }
           }
         }
