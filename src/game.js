@@ -8,7 +8,7 @@ function GetName(obj) {
 const DIFFICULTY = {
   easy: 0.1625,
   normal: 0.2,
-  hard: 0.25
+  hard: 0.3
 }
 
 const DIFFICULTY_NAME = GetName(DIFFICULTY)
