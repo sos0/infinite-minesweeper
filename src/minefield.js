@@ -42,6 +42,7 @@ const COLORS = [
  */
 export class MineField extends TileMap {
   density = 0.25
+  setting_autoflag = false;
   first_click = true
   score = 0
   init_time = null
@@ -61,13 +62,13 @@ export class MineField extends TileMap {
    */
   post_update() {}
 
-  constructor(new_density) {
+  constructor(new_density, setting_autoflag = false) {
     super()
     this.invert_button.type = 'checkbox'
     this.invert_button.id = 'invert'
     this.invert_button.hidden = true
     this.score_display.id = 'score'
-    this.init(new_density)
+    this.init(new_density, setting_autoflag)
   }
 
   /**
@@ -80,7 +81,7 @@ export class MineField extends TileMap {
     // Clone the audio element to avoid multiple audio elements playing at the same time causing earrape.
     const audio = CLEAR_AUDIO.cloneNode(true)
     if (this.game_over_time) {
-      if (Date.now() - this.game_over_time > 1400) this.init(this.density)
+      if (Date.now() - this.game_over_time > 1400) this.init(this.density, this.setting_autoflag)
     } else {
       if (this.data[x + ',' + y] !== undefined && this.data[x + ',' + y].explored) {
         // The cell is already explored.
@@ -105,15 +106,16 @@ export class MineField extends TileMap {
           }
         }
 
-
         // If the number of remaining cells is equal to the number of mines + number of flagged, then autoflag the adjacent cells.
         // 1. Identify number of adjacent cells that are unexplored.
         // 2. Identify number of remaining cells left to flag.
         // 3. If the two numbers are equal, autoflag all remaining cells.
-        if ((flagged + remainingUnexplored) === this.data[x + ',' + y].mines) {
-          for (let i = -1; i <= 1; i++) {
-            for (let j = -1; j <= 1; j++) {
-              if ((!this.data[x + i + ',' + (y + j)].explored) && (!this.data[x + i + ',' + (y + j)].flagged)) this.flag(x + i, y + j)
+        if (this.setting_autoflag) {
+          if ((flagged + remainingUnexplored) === this.data[x + ',' + y].mines) {
+            for (let i = -1; i <= 1; i++) {
+              for (let j = -1; j <= 1; j++) {
+                if ((!this.data[x + i + ',' + (y + j)].explored) && (!this.data[x + i + ',' + (y + j)].flagged)) this.flag(x + i, y + j)
+              }
             }
           }
         }
@@ -135,7 +137,7 @@ export class MineField extends TileMap {
    */
   secondary_action(x, y) {
     if (this.game_over_time) {
-      if (Date.now() - this.game_over_time > 1400) this.init(this.density)
+      if (Date.now() - this.game_over_time > 1400) this.init(this.density, this.setting_autoflag)
     } else
       this.first_click || this.invert_button.checked
         ? this.explore(x, y, CLEAR_AUDIO.cloneNode(true))
@@ -436,8 +438,9 @@ export class MineField extends TileMap {
   /**
    * @param {number} new_density
    */
-  init(new_density) {
+  init(new_density, new_autoflag) {
     this.density = new_density
+    this.setting_autoflag = new_autoflag
     this.data = {}
     this.animation = {}
     this.score = 0

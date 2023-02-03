@@ -98,8 +98,10 @@ export default class Game {
     game_config.addEventListener('submit', e => {
       const config = new FormData(e.target)
       const density = DIFFICULTY[config.get('difficulty')]
+      const autoflag = config.get('autoflag')
+
       this.game_mode = GAMEMODES[config.get('gamemode')]
-      this.minefield.init(density)
+      this.minefield.init(density, autoflag)
       difficulty_display.textContent = DIFFICULTY_NAME[density]
       game_mode_display.textContent = GAMEMODES_NAME[this.game_mode]
       if (this.game_mode === 0) {
@@ -110,6 +112,7 @@ export default class Game {
       }
       localStorage.setItem('gamemode', this.game_mode)
       localStorage.setItem('density', density)
+      localStorage.setItem('autoflag', autoflag)
       checker.checked = false
       container.classList.add('hide')
       info.classList.remove('hide')
@@ -202,7 +205,7 @@ export default class Game {
     gamemode_selector_elem.addEventListener('change', update_leaderboard)
     difficulty_selector_elem.addEventListener('change', update_leaderboard)
 
-    this.minefield.init(localStorage.getItem('density') || DIFFICULTY.normal)
+    this.minefield.init(localStorage.getItem('density') || DIFFICULTY.normal, localStorage.getItem('autoflag'))
     difficulty_display.textContent = DIFFICULTY_NAME[this.minefield.density]
     game_mode_display.textContent = GAMEMODES_NAME[this.game_mode]
     if (this.game_mode === 0) this.load_data()
