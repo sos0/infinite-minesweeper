@@ -1,8 +1,8 @@
 const BOMB_IMG = new Image()
 const FLAG_IMG = new Image()
 
-const FLAG_AUDIO = new Audio('./flag.mp3')
-const CLEAR_AUDIO = new Audio('./clear.mp3')
+const FLAG_AUDIO = new Audio('./sus.wav')
+const CLEAR_AUDIO = new Audio('./blip.wav')
 
 // BOMB_IMG.src = `data:image/svg+xml; charset=utf8, ${encodeURIComponent(
 //     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1" height="1">
@@ -50,3 +50,4 @@ FLAG_IMG.src = `data:image/svg+xml; charset=utf8, ${encodeURIComponent(
 )}`
 
 export { BOMB_IMG, FLAG_IMG, FLAG_AUDIO, CLEAR_AUDIO }
+
