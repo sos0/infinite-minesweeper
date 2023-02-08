@@ -51,6 +51,7 @@ export default class Game {
       this.minefield.cell_size = parsed.cell_size || 80
       this.minefield.first_click = parsed.first !== undefined ? parsed.first : true
       this.minefield.score = parsed.score || 0
+      this.minefield.lives = parsed.lives || 1
     }
   }
 
@@ -82,6 +83,7 @@ export default class Game {
     document.querySelector('#grid').replaceWith(this.minefield.canvas)
     document.querySelector('#invert').replaceWith(this.minefield.invert_button)
     document.querySelector('#score').replaceWith(this.minefield.score_display)
+    document.querySelector('#lives').replaceWith(this.minefield.lives_display)
 
     checker.addEventListener('input', e => {
       if (e.target.checked) {
@@ -138,6 +140,7 @@ export default class Game {
             localStorage.removeItem('casual-' + this.minefield.density)
           } else {
             const data = []
+
             for (const [key, cell] of Object.entries(this.minefield.data)) {
               data.push([
                 key,
@@ -149,6 +152,7 @@ export default class Game {
                 }
               ])
             }
+
             localStorage.setItem(
               'casual-' + this.minefield.density,
               btoa(
@@ -157,7 +161,8 @@ export default class Game {
                   data: data,
                   center: this.minefield.center,
                   cell_size: this.minefield.cell_size,
-                  score: this.minefield.score
+                  score: this.minefield.score,
+                  lives: this.minefield.lives
                 })
               )
             )

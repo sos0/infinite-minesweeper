@@ -45,11 +45,13 @@ export class MineField extends TileMap {
   setting_autoflag = false;
   first_click = true
   score = 0
+  lives = 1
   init_time = null
   game_over_time = null
   game_over_pos = null
   invert_button = document.createElement('input')
   score_display = document.createElement('h1')
+  lives_display = document.createElement('h1')
 
   /**
    * @type {{[key: string]: Cell}}
@@ -68,6 +70,7 @@ export class MineField extends TileMap {
     this.invert_button.id = 'invert'
     this.invert_button.hidden = true
     this.score_display.id = 'score'
+    this.lives_display.id = 'lives'
     this.init(new_density, setting_autoflag)
   }
 
@@ -91,7 +94,9 @@ export class MineField extends TileMap {
         let remainingUnexplored = 0
         for (let i = -1; i <= 1; i++) {
           for (let j = -1; j <= 1; j++) {
-            if (this.data[x + i + ',' + (y + j)].flagged) flagged++
+            const adjacentCell = this.data[x + i + ',' + (y + j)]
+
+            if (adjacentCell.flagged || (adjacentCell.explored && adjacentCell.is_mine)) flagged++
             else if (!this.data[x + i + ',' + (y + j)].explored) remainingUnexplored++
           }
         }
@@ -412,6 +417,7 @@ export class MineField extends TileMap {
     this.draw_borders(entries)
     this.draw_overlay(entries)
     this.score_display.textContent = this.score
+    this.lives_display.textContent = this.lives
     if (this.game_over_time) {
       if (Date.now() - this.game_over_time > 500) {
         if (Date.now() - this.game_over_time > 1000) this.canvas.classList.add('game-over')
@@ -444,6 +450,8 @@ export class MineField extends TileMap {
     this.data = {}
     this.animation = {}
     this.score = 0
+    this.score_counter = 0
+    this.lives = 1
     this.first_click = true
     this.game_over_time = null
     this.game_over_pos = null
@@ -524,13 +532,25 @@ export class MineField extends TileMap {
       if (this.data[x + ',' + y].explored || this.data[x + ',' + y].flagged) continue
       this.data[x + ',' + y].explored = true
       this.animation[x + ',' + y] = -0.2 * depth + (this.first_click ? 0.2 : 0)
+
+      // Add life system implementation. Auto-open if mine triggered while still having lives.
       if (this.data[x + ',' + y].is_mine) {
-        this.game_over_time = Date.now()
-        this.game_over_pos = [x, y]
-        return
+        if (this.lives == 1) {
+          this.game_over_time = Date.now()
+          this.game_over_pos = [x, y]
+          return
+        } else {
+          this.lives--
+          this.explore(x, y, audio)
+        }
       }
 
       this.score++
+      this.score_counter++
+      if (this.score_counter == 10) {
+        this.lives++
+        this.score_counter = 0
+      }
 
       this.data[x + ',' + y].mines = 0
 
