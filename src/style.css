@@ -118,6 +118,14 @@ header {
   user-select: none;
 }
 
+#lives {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #fff;
+  font-weight: 400;
+  user-select: none;
+}
+
 .submenu {
   position: absolute;
   inset: 0;

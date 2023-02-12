@@ -536,6 +536,7 @@ export class MineField extends TileMap {
       // Add life system implementation. Auto-open if mine triggered while still having lives.
       if (this.data[x + ',' + y].is_mine) {
         if (this.lives == 1) {
+          this.lives = 0
           this.game_over_time = Date.now()
           this.game_over_pos = [x, y]
           return
@@ -545,9 +546,10 @@ export class MineField extends TileMap {
         }
       }
 
+      // While we explore, grant lives 
       this.score++
       this.score_counter++
-      if (this.score_counter == 10) {
+      if (this.score_counter == 100) { // TODO: Refactor this into settings?
         this.lives++
         this.score_counter = 0
       }
