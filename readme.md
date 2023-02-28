@@ -29,7 +29,7 @@ Some other things we wanted to keep in mind:
 
 ### How to play
 
-Go to [the website](https://infinite-minesweeper.vercel.app) or clone the project and run the HTML file.
+Go to [the website](https://infinite-minesweeper-gold.vercel.app) or clone the project and run the HTML file.
 
 ### Controls
 
