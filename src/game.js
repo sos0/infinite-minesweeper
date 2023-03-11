@@ -1,9 +1,7 @@
 import { Cell, MineField } from './minefield.js'
 import * as Leaderboard from './leaderboard.js'
 
-function GetName(obj) {
-  return Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k[0].toUpperCase() + k.slice(1)]))
-}
+const GetName = (obj) => Object.fromEntries(Object.entries(obj).map(([k, v]) => [v, k[0].toUpperCase() + k.slice(1)]));
 
 const DIFFICULTY = {
   easy: 0.1625,
@@ -70,20 +68,28 @@ export default class Game {
     const gamemode_selector_elem = document.getElementById('gamemode-leaderboard-selector')
     const difficulty_selector_elem = document.getElementById('difficulty-leaderboard-selector')
     const leaderboard_elem = document.getElementById('leaderboard-list')
-
+    
     this.current_screen = main_menu
     this.game_mode = +localStorage.getItem('gamemode')
 
-    this.listen('.show-game-config', 'click', this.show_screen(game_config))
-    this.listen('.show-settings', 'click', this.show_screen(settings))
-    this.listen('.show-leaderboard', 'click', this.show_screen(leaderboard))
-    this.listen('.return-to-menu', 'click', this.show_screen(main_menu))
+    main_menu.addEventListener('click', (event) => {
+      const target = event.target;
+      if (target.classList.contains('show-game-config')) {
+        this.show_screen(game_config)();
+      } else if (target.classList.contains('show-settings')) {
+        this.show_screen(settings)();
+      } else if (target.classList.contains('show-leaderboard')) {
+        this.show_screen(leaderboard)();
+      } else if (target.classList.contains('return-to-menu')) {
+        this.show_screen(main_menu)();
+      }
+    });
 
     // Replace the existing DOM elements with the new one created by the MineField to ensure encapsulation
-    document.querySelector('#grid').replaceWith(this.minefield.canvas)
-    document.querySelector('#invert').replaceWith(this.minefield.invert_button)
-    document.querySelector('#score').replaceWith(this.minefield.score_display)
-    document.querySelector('#lives').replaceWith(this.minefield.lives_display)
+    document.getElementById('grid').replaceWith(this.minefield.canvas)
+    document.getElementById('invert').replaceWith(this.minefield.invert_button)
+    document.getElementById('score').replaceWith(this.minefield.score_display)
+    document.getElementById('lives').replaceWith(this.minefield.lives_display)
 
     checker.addEventListener('input', e => {
       if (e.target.checked) {
@@ -97,35 +103,58 @@ export default class Game {
       this.show_screen(main_menu)()
     })
 
-    game_config.addEventListener('submit', e => {
-      const config = new FormData(e.target)
-      const density = DIFFICULTY[config.get('difficulty')]
-      const autoflag = config.get('autoflag')
+    game_config.addEventListener('submit', (event) => {
+      event.preventDefault();
 
-      this.game_mode = GAMEMODES[config.get('gamemode')]
-      this.minefield.init(density, autoflag)
-      difficulty_display.textContent = DIFFICULTY_NAME[density]
-      game_mode_display.textContent = GAMEMODES_NAME[this.game_mode]
-      if (this.game_mode === 0) {
-        if (config.get('gamemode') === 'casual') this.load_data()
-        else {
-          localStorage.removeItem('casual-' + this.minefield.density)
+      // Get form data
+      const config = new FormData(event.target);
+      const {
+        difficulty: selectedDifficulty,
+        autoflag: selectedAutoFlag,
+        gamemode: selectedGameMode
+      } = Object.fromEntries(config);
+
+      // Convert difficulty name to mine density number
+      const difficulty = DIFFICULTY[selectedDifficulty];
+
+      // Initialize minefield with selected settings
+      this.game_mode = GAMEMODES[selectedGameMode];
+      this.minefield.init(difficulty, selectedAutoFlag);
+
+      // Update difficulty display if necessary
+      if (difficulty_display.textContent !== difficulty) {
+        difficulty_display.textContent = difficulty;
+      }
+
+      // Update game mode display if necessary
+      if (game_mode_display.textContent !== this.game_mode) {
+        game_mode_display.textContent = this.game_mode;
+      }
+
+      checker.checked = false;
+      container.classList.add('hide');
+      info.classList.remove('hide');
+
+      // Save selected settings in localStorage
+      localStorage.setItem('gamemode', this.game_mode);
+      localStorage.setItem('density', difficulty);
+      localStorage.setItem('autoflag', selectedAutoFlag);
+
+      // Handle "casual" game mode data
+      if (this.game_mode === GAMEMODES.casual) {
+        if (selectedGameMode === 'casual') {
+          this.load_data();
+        } else {
+          localStorage.removeItem(`casual-${difficulty}`);
         }
       }
-      localStorage.setItem('gamemode', this.game_mode)
-      localStorage.setItem('density', density)
-      localStorage.setItem('autoflag', autoflag)
-      checker.checked = false
-      container.classList.add('hide')
-      info.classList.remove('hide')
-      e.preventDefault()
-    })
+    });
 
     /**
      * Handle leaderGameboard UI logic
      */
     const update_leaderboard = () => {
-      Leaderboard.display(gamemode_selector_elem.value + '-' + DIFFICULTY[difficulty_selector_elem.value], leaderboard_elem)
+      Leaderboard.display(`${gamemode_selector_elem.value}-${DIFFICULTY[difficulty_selector_elem.value]}`, leaderboard_elem);
     }
 
     /**
@@ -234,8 +263,16 @@ export default class Game {
    * @param {Function} callback
    */
   listen(query, event, callback) {
-    for (const element of document.querySelectorAll(query)) {
-      element.addEventListener(event, callback)
-    }
+    // Get the parent element to attach the event listener to
+    const parent = document.documentElement;
+
+    // Add the event listener to the parent element and use event delegation
+    parent.addEventListener(event, (e) => {
+      // Check if the target element matches the query
+      if (e.target.matches(query)) {
+        // Call the callback function with the target element as the argument
+        callback(e.target);
+      }
+    });
   }
 }
